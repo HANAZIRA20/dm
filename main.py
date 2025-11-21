@@ -89,18 +89,18 @@ else:
                     processed = preprocess_text(input_text, stopword_remover, stemmer)
                     vec = vectorizer.transform([processed])
 
+                    # Prediksi
                     pred_bnb = model_bnb.predict(vec)[0]
                     pred_svm = model_svm.predict(vec)[0]
                     pred_ensemble = model_ensemble.predict(vec)[0]
 
-                    prob_bnb = model_bnb.predict_proba(vec)[0]
-                    prob_svm = model_svm.predict_proba(vec)[0]
+                    # Probabilitas Ensemble (pasti aman)
                     prob_ensemble = model_ensemble.predict_proba(vec)[0]
-
-                    st.subheader("🎯 Hasil Analisis (Ensemble)")
-
                     max_prob = max(prob_ensemble) * 100
                     conf_text, conf_type = get_confidence_badge(max_prob)
+
+                    # Output utama
+                    st.subheader("🎯 Hasil Analisis (Ensemble)")
 
                     if pred_ensemble == "positive":
                         st.success("### ✅ Sentimen: POSITIF")
@@ -109,8 +109,25 @@ else:
 
                     st.info(f"*Tingkat Keyakinan:* {conf_text} ({max_prob:.1f}%)")
 
-                    # Probabilitas
+                    # Probabilitas lengkap
                     st.write("📊 Probabilitas:")
                     col1, col2 = st.columns(2)
                     with col1:
                         st.metric("Negatif", f"{prob_ensemble[0]*100:.1f}%")
+                    with col2:
+                        st.metric("Positif", f"{prob_ensemble[1]*100:.1f}%")
+
+                    # Tampilkan detail
+                    if show_details:
+                        st.subheader("🧹 Hasil Preprocessing")
+                        st.write(processed)
+
+                    # Perbandingan model
+                    if show_comparison:
+                        st.subheader("📌 Perbandingan Model")
+                        st.write(f"**BernoulliNB :** {pred_bnb}")
+                        st.write(f"**SVM          :** {pred_svm}")
+                        st.write(f"**Ensemble     :** {pred_ensemble}")
+
+                except Exception as e:
+                    st.error(f"❌ Terjadi error saat analisis: {e}")
